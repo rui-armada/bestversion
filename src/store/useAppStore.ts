@@ -75,6 +75,14 @@ export interface Book {
   aiReason: string;
 }
 
+export interface DailyHabit {
+  id: string;
+  title: string;
+  icon: string;
+  completedDates: string[]; // ISO date strings 'YYYY-MM-DD'
+}
+
+
 interface AppState {
   user: User | null;
   isAuthenticated: boolean;
@@ -85,6 +93,7 @@ interface AppState {
   news: NewsArticle[];
   books: Book[];
   subscribedTopics: string[];
+  dailyHabits: DailyHabit[];
   
   // Auth actions
   login: (email: string, password: string) => void;
@@ -112,6 +121,12 @@ interface AppState {
   // News actions
   subscribeTopic: (topic: string) => void;
   unsubscribeTopic: (topic: string) => void;
+
+  // Daily habits actions
+  addDailyHabit: (habit: Omit<DailyHabit, 'id' | 'completedDates'>) => void;
+  editDailyHabit: (id: string, data: Partial<Pick<DailyHabit, 'title' | 'icon'>>) => void;
+  toggleDailyHabit: (id: string, date: string) => void;
+  deleteDailyHabit: (id: string) => void;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
@@ -165,6 +180,15 @@ export const useAppStore = create<AppState>()(persist((set) => ({
   news: mockNews,
   books: mockBooks,
   subscribedTopics: ['Investimentos', 'Tecnologia', 'Saúde', 'Desenvolvimento Pessoal'],
+  dailyHabits: [
+    { id: '1', title: 'Beber 3L água', icon: '💧', completedDates: [] },
+    { id: '2', title: 'Exercício físico', icon: '💪', completedDates: [] },
+    { id: '3', title: 'Ler 10 páginas', icon: '📖', completedDates: [] },
+    { id: '4', title: 'Meditar 10 min', icon: '🧘', completedDates: [] },
+    { id: '5', title: 'Dormir 8h', icon: '😴', completedDates: [] },
+    { id: '6', title: 'Sem redes sociais 1h+', icon: '📵', completedDates: [] },
+    { id: '7', title: 'Caminhar 30 min', icon: '🚶', completedDates: [] },
+  ],
 
   login: (email, _password) => set({
     isAuthenticated: true,
@@ -224,5 +248,30 @@ export const useAppStore = create<AppState>()(persist((set) => ({
 
   unsubscribeTopic: (topic) => set((state) => ({
     subscribedTopics: state.subscribedTopics.filter((t) => t !== topic),
+  })),
+
+  addDailyHabit: (habit) => set((state) => ({
+    dailyHabits: [...state.dailyHabits, { ...habit, id: generateId(), completedDates: [] }],
+  })),
+
+  editDailyHabit: (id, data) => set((state) => ({
+    dailyHabits: state.dailyHabits.map((h) => (h.id === id ? { ...h, ...data } : h)),
+  })),
+
+  toggleDailyHabit: (id, date) => set((state) => ({
+    dailyHabits: state.dailyHabits.map((h) =>
+      h.id === id
+        ? {
+            ...h,
+            completedDates: h.completedDates.includes(date)
+              ? h.completedDates.filter((d) => d !== date)
+              : [...h.completedDates, date],
+          }
+        : h
+    ),
+  })),
+
+  deleteDailyHabit: (id) => set((state) => ({
+    dailyHabits: state.dailyHabits.filter((h) => h.id !== id),
   })),
 }), { name: 'bestversion-storage' }));

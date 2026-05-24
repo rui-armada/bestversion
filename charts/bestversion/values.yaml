@@ -1,9 +1,9 @@
 replicaCount: 1
 
 image:
-  repository: bestversion
+  repository: ghcr.io/rui-armada/bestversion
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: NodePort

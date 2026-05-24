@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/I767625/bestversion.git
+    repoURL: https://github.com/rui-armada/bestversion.git
     targetRevision: main
     path: k8s
   destination:

@@ -7,5 +7,5 @@ variable "image" {
 variable "repo_url" {
   description = "Git repository URL for Argo CD to sync from"
   type        = string
-  default     = "https://github.com/I767625/bestversion.git"
+  default     = "https://github.com/rui-armada/bestversion.git"
 }

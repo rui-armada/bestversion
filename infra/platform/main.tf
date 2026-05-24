@@ -4,14 +4,6 @@ terraform {
       source  = "tehcyx/kind"
       version = "~> 0.6"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.30"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.14"
-    }
     null = {
       source  = "hashicorp/null"
       version = "~> 3.0"
@@ -55,7 +47,7 @@ module "cluster" {
   host_port_http   = local.cluster_ports[each.key].host_port_http
   host_port_argocd = local.cluster_ports[each.key].host_port_argocd
   repo_url         = local.config.repo_url
-  repo_path        = "platform/apps"
+  repo_path        = "infra/platform/apps"
   target_revision  = "main"
 }
 

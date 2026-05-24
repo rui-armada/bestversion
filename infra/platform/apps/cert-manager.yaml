@@ -1,17 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: bestversion
+  name: cert-manager
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/rui-armada/bestversion.git
-    targetRevision: main
-    path: k8s
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.16.3
+    helm:
+      releaseName: cert-manager
+      values: |
+        crds:
+          enabled: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: bestversion
+    namespace: cert-manager
   syncPolicy:
     automated:
       prune: true

@@ -4,14 +4,6 @@ terraform {
       source  = "tehcyx/kind"
       version = "~> 0.6"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.30"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.14"
-    }
   }
   required_version = ">= 1.0"
 }
@@ -76,47 +68,21 @@ resource "kind_cluster" "this" {
   }
 }
 
-provider "kubernetes" {
-  host                   = kind_cluster.this.endpoint
-  client_certificate     = kind_cluster.this.client_certificate
-  client_key             = kind_cluster.this.client_key
-  cluster_ca_certificate = kind_cluster.this.cluster_ca_certificate
-}
+# --- Argo CD (bootstrap via Helm CLI) ---
 
-provider "helm" {
-  kubernetes {
-    host                   = kind_cluster.this.endpoint
-    client_certificate     = kind_cluster.this.client_certificate
-    client_key             = kind_cluster.this.client_key
-    cluster_ca_certificate = kind_cluster.this.cluster_ca_certificate
-  }
-}
-
-# --- Argo CD (bootstrap only) ---
-
-resource "helm_release" "argocd" {
-  name             = "argocd"
-  repository       = "https://argoproj.github.io/argo-helm"
-  chart            = "argo-cd"
-  version          = "7.7.15"
-  namespace        = "argocd"
-  create_namespace = true
-  wait             = true
-  timeout          = 600
-
-  set {
-    name  = "server.service.type"
-    value = "NodePort"
-  }
-
-  set {
-    name  = "server.service.nodePortHttp"
-    value = "30080"
-  }
-
-  set {
-    name  = "configs.params.server\\.insecure"
-    value = "true"
+resource "null_resource" "argocd" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      helm repo add argo https://argoproj.github.io/argo-helm --force-update && \
+      helm upgrade --install argocd argo/argo-cd \
+        --version 7.7.15 \
+        --namespace argocd --create-namespace \
+        --kube-context kind-${var.cluster_name} \
+        --set server.service.type=NodePort \
+        --set server.service.nodePortHttp=30080 \
+        --set 'configs.params.server\.insecure=true' \
+        --wait --timeout 10m
+    EOT
   }
 
   depends_on = [kind_cluster.this]
@@ -152,7 +118,7 @@ resource "null_resource" "app_of_apps" {
     EOT
   }
 
-  depends_on = [helm_release.argocd]
+  depends_on = [null_resource.argocd]
 }
 
 # --- Outputs ---
